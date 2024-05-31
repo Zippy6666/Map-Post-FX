@@ -1,13 +1,26 @@
         -- Load the last settings for the specific map
 function MPFX:Load()
 
-    if !file.Exists("mpfx/"..game.GetMap()..".json") then return end
+    if !file.Exists("mpfx/"..game.GetMap()..".json", "DATA") then return end
+
+    -- Run all cvars
+    local ppcvars = util.JSONToTable( file.Read("mpfx/"..game.GetMap()..".json") )
+    for cvarname, cvarval in pairs(ppcvars) do
+        
+        if !ConVarExists(cvarname) then
+            -- Cvar missing, skip
+            MsgN("[MPFX] Missing convar! '", cvarname, "'")
+        else        
+            RunConsoleCommand(cvarname, cvarval)
+        end
 
 
-    -- RunConsoleCommand()
+    end
 
+    MsgN("[MPFX] FX all set!")
 
 end
+
 
     -- Store the last settings in a file for the specific map
 function MPFX:Store()
@@ -21,7 +34,7 @@ function MPFX:Store()
 
     -- Store all cvar values in a table
     local ppcvars = {}
-    for _, cvarname in pairs(self.Whitelist) do
+    for _, cvarname in ipairs(self.Whitelist) do
         ppcvars[cvarname] = GetConVar(cvarname):GetString()
     end
 
@@ -35,7 +48,6 @@ hook.Add("ShutDown", "SaveMPFX", function()
 end)
 
 
-
-hook.Add("Initialize", "LoadMPFX", function()
+hook.Add("InitPostEntity", "LoadMPFX", function()
     MPFX:Load()
 end)
